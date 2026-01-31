@@ -1,9 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import { type Job } from "@shared/schema";
 import { Button } from "@/components/ui/button";
-import { Phone, MapPin } from "lucide-react";
+import { Phone } from "lucide-react";
+import { useLocation } from "@/hooks/use-location";
 
 // Fix Leaflet default icon issue in React
 import icon from "leaflet/dist/images/marker-icon.png";
@@ -23,28 +24,51 @@ interface MapViewProps {
   onSelectJob: (id: number) => void;
 }
 
-// Component to handle map movement when selection changes
-function MapUpdater({ center }: { center: [number, number] | null }) {
+// Simple coordinate mapping for common cities to support flyTo
+const CITY_COORDINATES: Record<string, [number, number]> = {
+  "Gaborone": [-24.6282, 25.9231],
+  "Johannesburg": [-26.2041, 28.0473],
+  "Windhoek": [-22.5609, 17.0658],
+  "Cape Town": [-33.9249, 18.4241],
+};
+
+function MapUpdater({ selectedJob, onboardingLocation }: { 
+  selectedJob: Job | undefined; 
+  onboardingLocation: { city: string } | null 
+}) {
   const map = useMap();
+  const [hasFlownToOnboarding, setHasFlownToOnboarding] = useState(false);
+
   useEffect(() => {
-    if (center) {
-      map.flyTo(center, 14, { duration: 1.5 });
+    if (onboardingLocation && !hasFlownToOnboarding) {
+      const coords = CITY_COORDINATES[onboardingLocation.city] || [-24.6282, 25.9231]; // Default to Gaborone if unknown
+      map.flyTo(coords, 12, { duration: 3 });
+      setHasFlownToOnboarding(true);
     }
-  }, [center, map]);
+  }, [onboardingLocation, map, hasFlownToOnboarding]);
+
+  useEffect(() => {
+    if (selectedJob) {
+      map.flyTo([selectedJob.lat, selectedJob.lng], 14, { duration: 1.5 });
+    }
+  }, [selectedJob, map]);
+
   return null;
 }
 
 export function MapView({ jobs, selectedJobId, onSelectJob }: MapViewProps) {
+  const { location } = useLocation();
   const selectedJob = jobs.find(j => j.id === selectedJobId);
-  const center: [number, number] = selectedJob 
-    ? [selectedJob.lat, selectedJob.lng] 
-    : [37.7749, -122.4194]; // Default SF
+  
+  // Start from a world view
+  const initialCenter: [number, number] = [0, 20];
+  const initialZoom = 2;
 
   return (
     <div className="h-full w-full relative z-0">
       <MapContainer
-        center={center}
-        zoom={13}
+        center={initialCenter}
+        zoom={initialZoom}
         scrollWheelZoom={true}
         className="h-full w-full"
         zoomControl={false}
@@ -54,7 +78,10 @@ export function MapView({ jobs, selectedJobId, onSelectJob }: MapViewProps) {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         
-        <MapUpdater center={selectedJob ? [selectedJob.lat, selectedJob.lng] : null} />
+        <MapUpdater 
+          selectedJob={selectedJob} 
+          onboardingLocation={location}
+        />
 
         {jobs.map((job) => (
           <Marker
@@ -82,7 +109,6 @@ export function MapView({ jobs, selectedJobId, onSelectJob }: MapViewProps) {
         ))}
       </MapContainer>
       
-      {/* Overlay gradient for style */}
       <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-white/80 to-transparent pointer-events-none z-[400] md:hidden" />
     </div>
   );

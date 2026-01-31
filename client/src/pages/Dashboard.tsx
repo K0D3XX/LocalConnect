@@ -1,18 +1,19 @@
 import { useState, useRef, useEffect } from "react";
 import { useJobs } from "@/hooks/use-jobs";
 import { useAuth } from "@/hooks/use-auth";
+import { useLocation } from "@/hooks/use-location";
 import { JobCard } from "@/components/JobCard";
 import { MapView } from "@/components/MapView";
 import { CreateJobDialog } from "@/components/CreateJobDialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Map as MapIcon, List as ListIcon, UserCircle, LogOut } from "lucide-react";
+import { Search, Map as MapIcon, LogOut, UserCircle } from "lucide-react";
 
 export default function Dashboard() {
   const { data: jobs, isLoading } = useJobs();
   const { user, logout } = useAuth();
+  const { location } = useLocation();
   const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<"map" | "list">("map"); // Mobile toggle
@@ -43,7 +44,7 @@ export default function Dashboard() {
             <MapIcon className="w-5 h-5 text-primary" />
           </div>
           <h1 className="font-display font-bold text-xl tracking-tight hidden sm:block">
-            Local<span className="text-primary">Connect</span>
+            LocalConnect: <span className="text-primary">{location?.city || "Exploring"}</span>
           </h1>
         </div>
 
