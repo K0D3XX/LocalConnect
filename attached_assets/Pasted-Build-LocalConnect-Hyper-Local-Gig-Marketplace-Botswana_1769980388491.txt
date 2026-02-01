@@ -1,0 +1,121 @@
+Build LocalConnect: Hyper-Local Gig Marketplace (Botswana)
+Create a lightweight, modular React application optimized for 4GB RAM devices with these two core systems:
+1. Regional Navigator Component
+Tech Stack: React 18+ with Mapbox GL JS (v2.15+)
+Requirements:
+
+Create a <RegionalNavigator> component with a district selector dropdown
+Include all 10 Botswana districts with coordinates:
+
+Gaborone: [-24.6282, 25.9231]
+Kweneng: [-24.4569, 25.5919]
+Kgatleng: [-24.5500, 26.1000]
+South-East: [-24.5544, 25.9086]
+Southern: [-25.1628, 25.6358]
+Kgalagadi: [-24.5167, 21.8333]
+Ghanzi: [-21.6947, 21.6431]
+Central: [-22.4500, 27.2333]
+North-East: [-21.0500, 27.5000]
+Chobe: [-18.0833, 24.5000]
+
+
+Implement map.flyTo() with smooth animation (duration: 2000ms, zoom: 10)
+Add a "Current Location" button using browser geolocation API
+Display district name and population count (use mock data) below the map
+Lazy-load Mapbox library to reduce initial bundle size
+
+Code Structure:
+/components
+  /RegionalNavigator
+    index.jsx (main component)
+    districtData.js (coordinates + metadata)
+    MapControls.jsx (zoom/location buttons)
+2. Professional Portfolio Schema & UI
+Data Model (use Context API or Zustand for state):
+javascriptprofessionalProfile = {
+  personalInfo: {
+    fullName: string,
+    verifiedPhone: {
+      number: string,
+      isVerified: boolean,
+      verifiedAt: timestamp
+    },
+    omangStatus: {
+      isVerified: boolean,
+      verificationMethod: 'manual' | 'api' // placeholder for future BURS integration
+    }
+  },
+  professional: {
+    bio: string (max 500 chars),
+    yearsExperience: number,
+    primarySkill: string,
+    serviceArea: array (district names)
+  },
+  portfolio: {
+    projects: [
+      {
+        id: uuid,
+        title: string,
+        description: string,
+        images: array (max 5 URLs),
+        completedDate: date
+      }
+    ]
+  },
+  trustScore: {
+    rating: number (1-5),
+    totalReviews: number,
+    responseTime: string (e.g., "< 2 hours")
+  }
+}
+```
+
+**UI Layout (Mobile-First):**
+- **Trust Badge Section** (top): Verified phone icon, Omang checkmark, trust score stars
+- **Professional Bio Card**: Years of experience badge, bio text, "View Full Profile" button
+- **Portfolio Grid**: 2-column responsive gallery with lazy-loaded images (use Intersection Observer)
+- **Action Bar** (sticky footer): "Call Now" button (tel: link), "Send Message" button
+
+**Performance Optimization:**
+- Use `React.memo` for ProfileCard and PortfolioItem components
+- Implement virtual scrolling for portfolio grid (use `react-window` if >20 items)
+- Compress images to WebP format, max 800px width
+- Code-split portfolio gallery into separate chunk
+
+## Technical Constraints
+- **Bundle Size Target:** < 250KB initial JS (gzipped)
+- **Dependencies:** React, Mapbox GL, react-router-dom, date-fns (NO heavy UI libraries like MUI)
+- **Styling:** Use CSS Modules or Tailwind CSS (configure JIT mode)
+- **API Integration:** Create mock API functions in `/services/api.js` for future backend connection
+
+## File Structure
+```
+/src
+  /components
+    /RegionalNavigator
+    /ProfessionalProfile
+      ProfileHeader.jsx
+      PortfolioGallery.jsx
+      TrustBadge.jsx
+  /context
+    ProfileContext.jsx
+  /services
+    mapboxConfig.js
+    api.js
+  /utils
+    validation.js (phone/Omang format checkers)
+Deliverables
+
+Fully functional Regional Navigator with district flyTo animation
+Professional Profile page with mock data
+Responsive design (mobile 375px → desktop 1440px)
+Performance metrics displayed in console (bundle size, render time)
+
+Environment Setup:
+
+Add .env file with: VITE_MAPBOX_TOKEN=pk.your_token_here (use public Mapbox token)
+Configure Vite for optimal chunking and tree-shaking
+
+Build this as a SPA with routing between Navigator and Profile pages. Prioritize clean, commented code for easy handoff.
+
+Usage Note: Replace the Mapbox token placeholder with your actual public token after Replit generates the code. Test the flyTo animations on each district and verify the profile layout renders correctly on mobile viewport.
