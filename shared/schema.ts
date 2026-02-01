@@ -3,6 +3,7 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 // Import users/sessions from auth model to ensure they are created
 export * from "./models/auth";
+import { users } from "./models/auth";
 
 export const jobs = pgTable("jobs", {
   id: serial("id").primaryKey(),
@@ -25,6 +26,11 @@ export const skills = pgTable("skills", {
   userId: varchar("user_id").notNull(),
   name: text("name").notNull(),
 });
+
+// Update User model in shared/schema.ts (implicitly via auth model but let's ensure fields exist)
+// Note: We use the existing users table from auth model. 
+// Let's add verification fields if they don't exist in the actual DB or schema.
+// Since shared/schema.ts exports * from "./models/auth", we should check that file.
 
 // New Table: Portfolio Items
 export const portfolioItems = pgTable("portfolio_items", {
