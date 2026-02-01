@@ -4,6 +4,9 @@ import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
+import { db } from "./db";
+import { users } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -48,20 +51,20 @@ export async function registerRoutes(
   // Profile Routes
   app.get("/api/profile/:userId", async (req, res) => {
     const userId = req.params.userId;
-    const authUser = await db.query.users.findFirst({ where: (u, { eq }) => eq(u.id, userId) });
-    if (!authUser) return res.status(404).json({ message: "User not found" });
+    const authUser = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    if (authUser.length === 0) return res.status(404).json({ message: "User not found" });
 
-    const [skills, portfolio, workExperience] = await Promise.all([
+    const [profileSkills, portfolio, experience] = await Promise.all([
       storage.getSkills(userId),
       storage.getPortfolio(userId),
       storage.getWorkExperience(userId)
     ]);
 
     res.json({
-      user: authUser,
-      skills,
+      user: authUser[0],
+      skills: profileSkills,
       portfolio,
-      workExperience
+      workExperience: experience
     });
   });
 
@@ -93,7 +96,6 @@ async function seedDatabase() {
       salary: "$20/hr",
       type: "Part-time",
       contactPhone: "555-0101",
-      isVerified: true
     });
     
     await storage.createJob({
@@ -106,7 +108,6 @@ async function seedDatabase() {
       salary: "$22/hr",
       type: "Full-time",
       contactPhone: "555-0102",
-      isVerified: true
     });
 
     await storage.createJob({
@@ -119,7 +120,6 @@ async function seedDatabase() {
       salary: "$25/hr",
       type: "Full-time",
       contactPhone: "555-0103",
-      isVerified: false
     });
     
     // New job (Hiring Now)
@@ -133,7 +133,6 @@ async function seedDatabase() {
       salary: "$24/hr",
       type: "Part-time",
       contactPhone: "555-0104",
-      isVerified: true
     });
   }
 }

@@ -27,7 +27,7 @@ export default function Profile() {
   const [newSkill, setNewSkill] = useState("");
   const isOwnProfile = authUser?.id === userId;
 
-  const { data: profile, isLoading } = useQuery({
+  const { data: profile, isLoading } = useQuery<any>({
     queryKey: [`/api/profile/${userId}`],
   });
 

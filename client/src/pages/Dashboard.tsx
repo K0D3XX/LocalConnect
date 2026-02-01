@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Search, Map as MapIcon, LogOut, UserCircle } from "lucide-react";
+import { Link } from "wouter";
 
 export default function Dashboard() {
   const { data: jobs, isLoading } = useJobs();
