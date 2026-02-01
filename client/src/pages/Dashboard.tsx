@@ -65,7 +65,14 @@ export default function Dashboard() {
             <div className="flex items-center gap-3">
               <CreateJobDialog />
               <div className="hidden md:flex items-center gap-2 text-sm font-medium pl-3 border-l border-border/50">
-                <span className="text-muted-foreground">Hi, {user.firstName || 'User'}</span>
+                <Link href={`/profile/${user.id}`}>
+                  <Button variant="ghost" className="flex items-center gap-2 px-2 hover:bg-muted rounded-lg">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                      <UserCircle className="w-5 h-5 text-primary" />
+                    </div>
+                    <span className="text-muted-foreground font-semibold">Hi, {user.firstName || 'User'}</span>
+                  </Button>
+                </Link>
                 <Button variant="ghost" size="icon" onClick={() => logout()} title="Logout">
                   <LogOut className="w-4 h-4 text-muted-foreground hover:text-destructive" />
                 </Button>

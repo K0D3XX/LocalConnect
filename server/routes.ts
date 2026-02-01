@@ -45,6 +45,34 @@ export async function registerRoutes(
     }
   });
 
+  // Profile Routes
+  app.get("/api/profile/:userId", async (req, res) => {
+    const userId = req.params.userId;
+    const authUser = await db.query.users.findFirst({ where: (u, { eq }) => eq(u.id, userId) });
+    if (!authUser) return res.status(404).json({ message: "User not found" });
+
+    const [skills, portfolio, workExperience] = await Promise.all([
+      storage.getSkills(userId),
+      storage.getPortfolio(userId),
+      storage.getWorkExperience(userId)
+    ]);
+
+    res.json({
+      user: authUser,
+      skills,
+      portfolio,
+      workExperience
+    });
+  });
+
+  app.post("/api/profile/skills", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = (req.user as any).claims.sub;
+    const { name } = req.body;
+    const skill = await storage.addSkill(userId, name);
+    res.status(201).json(skill);
+  });
+
   // Seed Data
   seedDatabase();
 

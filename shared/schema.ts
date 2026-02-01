@@ -1,4 +1,4 @@
-import { pgTable, text, serial, doublePrecision, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, doublePrecision, boolean, timestamp, integer, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 // Import users/sessions from auth model to ensure they are created
@@ -19,14 +19,49 @@ export const jobs = pgTable("jobs", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// New Table: Skills
+export const skills = pgTable("skills", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  name: text("name").notNull(),
+});
+
+// New Table: Portfolio Items
+export const portfolioItems = pgTable("portfolio_items", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  imageUrl: text("image_url").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// New Table: Work Experience
+export const workExperience = pgTable("work_experience", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  company: text("company").notNull(),
+  position: text("position").notNull(),
+  description: text("description").notNull(),
+  startDate: text("start_date").notNull(),
+  endDate: text("end_date"), // null if current
+});
+
 export const insertJobSchema = createInsertSchema(jobs).omit({ 
   id: true, 
   createdAt: true,
-  isVerified: true // Only admin/system verifies
+  isVerified: true 
 });
+
+export const insertSkillSchema = createInsertSchema(skills).omit({ id: true });
+export const insertPortfolioItemSchema = createInsertSchema(portfolioItems).omit({ id: true, createdAt: true });
+export const insertWorkExperienceSchema = createInsertSchema(workExperience).omit({ id: true });
 
 export type Job = typeof jobs.$inferSelect;
 export type InsertJob = z.infer<typeof insertJobSchema>;
+export type Skill = typeof skills.$inferSelect;
+export type PortfolioItem = typeof portfolioItems.$inferSelect;
+export type WorkExperience = typeof workExperience.$inferSelect;
 
 export type CreateJobRequest = InsertJob;
 export type UpdateJobRequest = Partial<InsertJob>;

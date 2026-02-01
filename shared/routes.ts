@@ -41,6 +41,30 @@ export const api = {
       },
     },
   },
+  profile: {
+    get: {
+      method: 'GET' as const,
+      path: '/api/profile/:userId',
+      responses: {
+        200: z.object({
+          user: z.custom<any>(),
+          skills: z.array(z.custom<any>()),
+          portfolio: z.array(z.custom<any>()),
+          workExperience: z.array(z.custom<any>()),
+        }),
+        404: errorSchemas.notFound,
+      },
+    },
+    addSkill: {
+      method: 'POST' as const,
+      path: '/api/profile/skills',
+      input: z.object({ name: z.string() }),
+      responses: {
+        201: z.custom<any>(),
+        401: z.object({ message: z.string() }),
+      },
+    },
+  },
 };
 
 export function buildUrl(path: string, params?: Record<string, string | number>): string {
