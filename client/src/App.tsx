@@ -7,6 +7,7 @@ import { LocationProvider, useLocation } from "@/hooks/use-location";
 import Dashboard from "@/pages/Dashboard";
 import Onboarding from "@/pages/Onboarding";
 import Profile from "@/pages/Profile";
+import Checkout from "@/pages/Checkout";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -17,6 +18,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/profile/:userId" component={Profile} />
+      <Route path="/checkout/:jobId" component={Checkout} />
       <Route path="/">
         {location ? <Dashboard /> : <Onboarding />}
       </Route>

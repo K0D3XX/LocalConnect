@@ -64,8 +64,16 @@ export async function registerRoutes(
       user: authUser[0],
       skills: profileSkills,
       portfolio,
-      workExperience: experience
+      workExperience: experience,
+      transactions: await storage.getTransactions(userId)
     });
+  });
+
+  app.post("/api/transactions", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = (req.user as any).claims.sub;
+    const tx = await storage.createTransaction({ ...req.body, userId });
+    res.status(201).json(tx);
   });
 
   app.post("/api/profile/skills", async (req, res) => {

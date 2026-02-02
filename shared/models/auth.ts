@@ -31,6 +31,7 @@ export const users = pgTable("users", {
   trustScore: doublePrecision("trust_score").default(0),
   totalReviews: integer("total_reviews").default(0),
   responseTime: varchar("response_time"),
+  balance: doublePrecision("balance").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { jobs, skills, portfolioItems, workExperience, type CreateJobRequest, type Job, type Skill, type PortfolioItem, type WorkExperience } from "@shared/schema";
+import { jobs, skills, portfolioItems, workExperience, transactions, users, type CreateJobRequest, type Job, type Skill, type PortfolioItem, type WorkExperience, type Transaction } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
 export interface IStorage {
@@ -12,6 +12,10 @@ export interface IStorage {
   addSkill(userId: string, name: string): Promise<Skill>;
   getPortfolio(userId: string): Promise<PortfolioItem[]>;
   getWorkExperience(userId: string): Promise<WorkExperience[]>;
+  
+  // Fintech methods
+  getTransactions(userId: string): Promise<Transaction[]>;
+  createTransaction(transaction: any): Promise<Transaction>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -44,6 +48,23 @@ export class DatabaseStorage implements IStorage {
 
   async getWorkExperience(userId: string): Promise<WorkExperience[]> {
     return await db.select().from(workExperience).where(eq(workExperience.userId, userId));
+  }
+
+  async getTransactions(userId: string): Promise<Transaction[]> {
+    return await db.select().from(transactions).where(eq(transactions.userId, userId)).orderBy(transactions.createdAt);
+  }
+
+  async createTransaction(tx: any): Promise<Transaction> {
+    const [transaction] = await db.insert(transactions).values(tx).returning();
+    // Update user balance if completed
+    if (tx.status === 'completed') {
+      const [user] = await db.select().from(users).where(eq(users.id, tx.userId));
+      if (user) {
+        const newBalance = (user.balance || 0) + tx.amount;
+        await db.update(users).set({ balance: newBalance }).where(eq(users.id, tx.userId));
+      }
+    }
+    return transaction;
   }
 }
 

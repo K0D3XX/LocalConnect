@@ -1,10 +1,11 @@
 import { type Job } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { MapPin, Phone, DollarSign, Clock, Building2 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { MapPin, Phone, Building2 } from "lucide-react";
 import { differenceInHours } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Link } from "wouter";
 
 interface JobCardProps {
   job: Job;
@@ -20,12 +21,12 @@ export function JobCard({ job, onClick, className, selected }: JobCardProps) {
     <Card 
       onClick={onClick}
       className={cn(
-        "group relative overflow-hidden transition-all duration-300 cursor-pointer border hover:border-primary/50",
-        selected ? "ring-2 ring-primary border-primary shadow-lg shadow-primary/10 bg-primary/5" : "hover:shadow-md hover:-translate-y-0.5",
+        "group relative overflow-hidden transition-all duration-300 cursor-pointer border-none shadow-sm hover:shadow-md rounded-2xl",
+        selected ? "ring-2 ring-primary bg-primary/5" : "bg-white dark:bg-slate-900",
         className
       )}
     >
-      <div className="p-5 flex flex-col h-full gap-4">
+      <CardContent className="p-5 flex flex-col h-full gap-4">
         {/* Header Section */}
         <div className="flex justify-between items-start gap-3">
           <div>
@@ -34,7 +35,7 @@ export function JobCard({ job, onClick, className, selected }: JobCardProps) {
                 {job.title}
               </h3>
               {isRecent && (
-                <Badge variant="default" className="bg-accent hover:bg-accent/90 text-white border-0 shadow-sm animate-pulse px-2 py-0.5 h-5 text-[10px] uppercase tracking-wider font-bold">
+                <Badge variant="default" className="bg-primary hover:bg-primary/90 text-white border-0 px-2 py-0.5 h-5 text-[10px] uppercase tracking-wider font-bold">
                   Hiring Now
                 </Badge>
               )}
@@ -44,48 +45,57 @@ export function JobCard({ job, onClick, className, selected }: JobCardProps) {
               <span>{job.company}</span>
             </div>
           </div>
+          <div className="flex items-center gap-1.5 px-3 py-1 bg-primary/5 text-primary rounded-full">
+            <span className="text-xs font-black tracking-tight">P{job.salary}</span>
+          </div>
         </div>
 
         {/* Tags */}
         <div className="flex flex-wrap gap-2 text-xs">
-          <Badge variant="secondary" className="font-normal text-secondary-foreground bg-secondary/50">
+          <Badge variant="secondary" className="font-bold text-[10px] uppercase tracking-widest bg-slate-100 dark:bg-slate-800">
             {job.category}
           </Badge>
-          <Badge variant="outline" className="font-normal text-muted-foreground">
+          <Badge variant="outline" className="font-bold text-[10px] uppercase tracking-widest text-muted-foreground border-slate-200">
             {job.type}
           </Badge>
-          {job.salary && (
-            <div className="flex items-center gap-1 text-muted-foreground px-2 py-0.5 rounded-full bg-muted/50 border border-border/50">
-              <DollarSign className="w-3 h-3" />
-              <span>{job.salary}</span>
-            </div>
-          )}
         </div>
 
-        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-          {job.description}
+        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed italic">
+          "{job.description}"
         </p>
 
         {/* Footer Actions */}
-        <div className="mt-auto pt-4 border-t border-border/50 flex items-center justify-between gap-3">
+        <div className="mt-auto pt-4 border-t border-slate-50 dark:border-slate-800 flex items-center justify-between gap-3">
           <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
              <MapPin className="w-3.5 h-3.5 text-primary" />
-             <span>View on Map</span>
+             <span>Botswana</span>
           </div>
 
-          <Button 
-            size="sm" 
-            className="w-auto shadow-sm" 
-            onClick={(e) => {
-              e.stopPropagation();
-              window.location.href = `tel:${job.contactPhone}`;
-            }}
-          >
-            <Phone className="w-3.5 h-3.5 mr-2" />
-            Call Employer
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              size="sm" 
+              variant="ghost"
+              className="h-8 rounded-full text-[10px] font-bold uppercase tracking-widest" 
+              onClick={(e) => {
+                e.stopPropagation();
+                window.location.href = `tel:${job.contactPhone}`;
+              }}
+            >
+              <Phone className="w-3 h-3 mr-1.5" />
+              Call
+            </Button>
+            <Link href={`/checkout/${job.id}`}>
+              <Button 
+                size="sm" 
+                className="h-8 rounded-full bg-primary hover:bg-primary/90 font-bold text-[10px] uppercase tracking-widest px-4 shadow-lg shadow-primary/20"
+                onClick={(e) => e.stopPropagation()}
+              >
+                Apply & Pay
+              </Button>
+            </Link>
+          </div>
         </div>
-      </div>
+      </CardContent>
     </Card>
   );
 }

@@ -3,6 +3,7 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 // Import users/sessions from auth model to ensure they are created
 export * from "./models/auth";
+export * from "./models/transactions";
 import { users } from "./models/auth";
 
 export const jobs = pgTable("jobs", {
