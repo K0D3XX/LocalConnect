@@ -17,6 +17,7 @@ export const jobs = pgTable("jobs", {
   salary: text("salary"),
   type: text("type").notNull(), // Full-time, Part-time, Contract
   contactPhone: text("contact_phone").notNull(),
+  landmark: text("landmark"),
   isVerified: boolean("is_verified").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

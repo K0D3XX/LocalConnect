@@ -29,7 +29,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createJob(insertJob: CreateJobRequest): Promise<Job> {
-    const [job] = await db.insert(jobs).values(insertJob).returning();
+    const jobData = {
+      ...insertJob,
+      landmark: insertJob.landmark || null
+    };
+    const [job] = await db.insert(jobs).values(jobData).returning();
     return job;
   }
 

@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreateJob } from "@/hooks/use-jobs";
 import { insertJobSchema, type InsertJob } from "@shared/schema";
+import mapboxgl from "mapbox-gl";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +19,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import {
   Select,
@@ -30,7 +32,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, MapPin, Search } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
 const categories = ["Retail", "Food Service", "Labor", "Office", "Healthcare", "Technology", "Other"];
@@ -38,15 +40,16 @@ const types = ["Full-time", "Part-time", "Contract", "Gig"];
 
 export function CreateJobDialog() {
   const [open, setOpen] = useState(false);
+  const [isLookingUp, setIsLookingUp] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const createJob = useCreateJob();
 
   // Extend schema to coerce numbers for lat/lng
   const formSchema = insertJobSchema.extend({
-    // lat/lng are technically doublePrecision in schema but input type="number" returns string
     lat: insertJobSchema.shape.lat, 
     lng: insertJobSchema.shape.lng,
+    landmark: insertJobSchema.shape.landmark,
   });
 
   const form = useForm<InsertJob>({
@@ -59,10 +62,33 @@ export function CreateJobDialog() {
       type: "Full-time",
       salary: "",
       contactPhone: "",
-      lat: 37.7749, // Default to SF for demo
-      lng: -122.4194,
+      lat: -24.6581, // Default to Gaborone
+      lng: 25.9122,
+      landmark: "",
     },
   });
+
+  const watchLatLng = form.watch(["lat", "lng"]);
+
+  const lookupLandmark = async (lat: number, lng: number) => {
+    setIsLookingUp(true);
+    try {
+      const token = import.meta.env.VITE_MAPBOX_TOKEN;
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?types=poi&access_token=${token}`
+      );
+      const data = await response.json();
+      
+      if (data.features && data.features.length > 0) {
+        const landmark = data.features[0].text;
+        form.setValue("landmark", `Near ${landmark}`);
+      }
+    } catch (error) {
+      console.error("Landmark lookup failed:", error);
+    } finally {
+      setIsLookingUp(false);
+    }
+  };
 
   function onSubmit(data: InsertJob) {
     if (!user) {
@@ -105,7 +131,7 @@ export function CreateJobDialog() {
         <DialogHeader>
           <DialogTitle className="text-2xl font-display font-bold text-primary">Post a New Opportunity</DialogTitle>
           <DialogDescription>
-            Share a job with your local community.
+            Share a job with your local community in Botswana.
           </DialogDescription>
         </DialogHeader>
 
@@ -132,7 +158,7 @@ export function CreateJobDialog() {
                   <FormItem>
                     <FormLabel>Company Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Blue Bottle Coffee" {...field} />
+                      <Input placeholder="e.g. Choppies" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -192,10 +218,14 @@ export function CreateJobDialog() {
               name="salary"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Salary / Rate (Optional)</FormLabel>
+                  <FormLabel>Salary / Rate (Pula BWP)</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. $20/hr or $60k/yr" {...field} value={field.value || ''} />
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-primary">P</span>
+                      <Input className="pl-7" placeholder="e.g. 2500" {...field} value={field.value || ''} />
+                    </div>
                   </FormControl>
+                  <FormDescription>Enter the amount in Botswana Pula.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -209,7 +239,7 @@ export function CreateJobDialog() {
                   <FormItem>
                     <FormLabel>Contact Phone</FormLabel>
                     <FormControl>
-                      <Input type="tel" placeholder="(555) 123-4567" {...field} />
+                      <Input type="tel" placeholder="+267 71 234 567" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -218,7 +248,24 @@ export function CreateJobDialog() {
             </div>
 
             <div className="p-4 bg-muted/50 rounded-lg border border-border/50 space-y-4">
-              <h4 className="font-semibold text-sm">Location Coordinates</h4>
+              <div className="flex items-center justify-between">
+                <h4 className="font-semibold text-sm flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-primary" />
+                  Location Navigation
+                </h4>
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-7 text-[10px] font-bold uppercase tracking-wider"
+                  onClick={() => lookupLandmark(watchLatLng[0], watchLatLng[1])}
+                  disabled={isLookingUp}
+                >
+                  {isLookingUp ? <Loader2 className="w-3 h-3 animate-spin" /> : <Search className="w-3 h-3 mr-1" />}
+                  Find Landmark
+                </Button>
+              </div>
+              
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -257,9 +304,23 @@ export function CreateJobDialog() {
                   )}
                 />
               </div>
-              <p className="text-xs text-muted-foreground">
-                Tip: You can get these from Google Maps by right-clicking a location.
-              </p>
+
+              <FormField
+                control={form.control}
+                name="landmark"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs">Landmark Description</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. Near Gaborone Station" {...field} value={field.value || ''} />
+                    </FormControl>
+                    <FormDescription className="text-[10px]">
+                      Help workers find the exact spot (e.g., "Opposite the blue gate").
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             <FormField

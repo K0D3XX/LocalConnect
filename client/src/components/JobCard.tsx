@@ -2,7 +2,7 @@ import { type Job } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Phone, Building2 } from "lucide-react";
+import { MapPin, Phone, Building2, Navigation } from "lucide-react";
 import { differenceInHours } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Link } from "wouter";
@@ -59,6 +59,15 @@ export function JobCard({ job, onClick, className, selected }: JobCardProps) {
             {job.type}
           </Badge>
         </div>
+
+        {job.landmark && (
+          <div className="flex items-center gap-2 py-1.5 px-3 bg-primary/10 rounded-xl border border-primary/20">
+            <Navigation className="w-3.5 h-3.5 text-primary" />
+            <span className="text-[11px] font-black text-primary uppercase tracking-tight">
+              {job.landmark}
+            </span>
+          </div>
+        )}
 
         <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed italic">
           "{job.description}"
