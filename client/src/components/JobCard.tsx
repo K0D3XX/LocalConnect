@@ -69,40 +69,46 @@ export function JobCard({ job, onClick, className, selected }: JobCardProps) {
           </div>
         )}
 
-        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed italic">
-          "{job.description}"
-        </p>
+        {/* 3-Point Bullet Summary */}
+        <div className="space-y-2 py-2 border-y border-slate-50 dark:border-slate-800">
+          <div className="flex items-start gap-2 text-sm">
+            <span className="text-primary font-bold">📍 Location:</span>
+            <span className="text-muted-foreground">{job.landmark || "Botswana"}</span>
+          </div>
+          <div className="flex items-start gap-2 text-sm">
+            <span className="text-primary font-bold">💰 Pay:</span>
+            <span className="text-muted-foreground">P{job.salary} (Fixed)</span>
+          </div>
+          <div className="flex items-start gap-2 text-sm">
+            <span className="text-primary font-bold">🛠️ Must-Have:</span>
+            <span className="text-muted-foreground line-clamp-1">{job.description}</span>
+          </div>
+        </div>
 
         {/* Footer Actions */}
-        <div className="mt-auto pt-4 border-t border-slate-50 dark:border-slate-800 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-             <MapPin className="w-3.5 h-3.5 text-primary" />
-             <span>Botswana</span>
-          </div>
-
-          <div className="flex gap-2">
+        <div className="mt-auto pt-4 flex items-center justify-between gap-3">
+          <Button 
+            size="sm" 
+            variant="outline"
+            className="flex-1 h-9 rounded-full text-[10px] font-bold uppercase tracking-widest border-primary/20 text-primary hover:bg-primary/5" 
+            onClick={(e) => {
+              e.stopPropagation();
+              window.location.href = `tel:${job.contactPhone}`;
+            }}
+          >
+            <Phone className="w-3.5 h-3.5 mr-1.5" />
+            Call for Details
+          </Button>
+          
+          <Link href={`/checkout/${job.id}`}>
             <Button 
               size="sm" 
-              variant="ghost"
-              className="h-8 rounded-full text-[10px] font-bold uppercase tracking-widest" 
-              onClick={(e) => {
-                e.stopPropagation();
-                window.location.href = `tel:${job.contactPhone}`;
-              }}
+              className="h-9 rounded-full bg-primary hover:bg-primary/90 font-bold text-[10px] uppercase tracking-widest px-6 shadow-lg shadow-primary/20"
+              onClick={(e) => e.stopPropagation()}
             >
-              <Phone className="w-3 h-3 mr-1.5" />
-              Call
+              Apply & Pay
             </Button>
-            <Link href={`/checkout/${job.id}`}>
-              <Button 
-                size="sm" 
-                className="h-8 rounded-full bg-primary hover:bg-primary/90 font-bold text-[10px] uppercase tracking-widest px-4 shadow-lg shadow-primary/20"
-                onClick={(e) => e.stopPropagation()}
-              >
-                Apply & Pay
-              </Button>
-            </Link>
-          </div>
+          </Link>
         </div>
       </CardContent>
     </Card>
