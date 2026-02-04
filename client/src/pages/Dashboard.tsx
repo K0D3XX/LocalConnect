@@ -7,11 +7,12 @@ import { CreateJobDialog } from "@/components/CreateJobDialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Map as MapIcon, LogOut, UserCircle, MapPin, ShieldCheck } from "lucide-react";
+import { Search, Map as MapIcon, LogOut, UserCircle, MapPin, ShieldCheck, Users, Briefcase } from "lucide-react";
 import { Link } from "wouter";
 import { RegionalNavigator } from "@/components/RegionalNavigator";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 export default function Dashboard() {
   const { data: jobs, isLoading } = useJobs();
@@ -20,6 +21,7 @@ export default function Dashboard() {
   const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<"map" | "list">("map"); // Mobile toggle
+  const [userMode, setUserMode] = useState<'Hiring' | 'Working'>('Working');
   const listRef = useRef<HTMLDivElement>(null);
 
   // Scroll to selected job in list
@@ -64,6 +66,38 @@ export default function Dashboard() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Mode Toggle */}
+          <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl mr-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setUserMode('Working')}
+              className={cn(
+                "h-8 rounded-lg px-3 transition-all duration-300 gap-2",
+                userMode === 'Working' 
+                  ? "bg-white dark:bg-slate-700 shadow-sm text-primary" 
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Briefcase className="w-3.5 h-3.5" />
+              <span className="text-xs font-bold uppercase tracking-tight">Working</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setUserMode('Hiring')}
+              className={cn(
+                "h-8 rounded-lg px-3 transition-all duration-300 gap-2",
+                userMode === 'Hiring' 
+                  ? "bg-white dark:bg-slate-700 shadow-sm text-primary" 
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span className="text-xs font-bold uppercase tracking-tight">Hiring</span>
+            </Button>
+          </div>
+
           {user ? (
             <div className="flex items-center gap-3">
               <CreateJobDialog />
@@ -144,8 +178,14 @@ export default function Dashboard() {
           <div className="lg:col-span-8 space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="font-display text-2xl font-bold tracking-tight">Recommended Gigs</h2>
-                <p className="text-sm text-muted-foreground">Top opportunities in {location?.city || "your area"}</p>
+                <h2 className="font-display text-2xl font-bold tracking-tight">
+                  {userMode === 'Working' ? 'Recommended Gigs' : 'Available Talent'}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {userMode === 'Working' 
+                    ? `Top opportunities in ${location?.city || "your area"}`
+                    : `Skilled people ready to work in ${location?.city || "your area"}`}
+                </p>
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="secondary" className="rounded-full bg-primary/10 text-primary border-none">Trending</Badge>
@@ -153,7 +193,22 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {isLoading ? (
+            {userMode === 'Hiring' ? (
+              <Card className="border-dashed border-2 py-20 text-center bg-white/50 dark:bg-slate-900/50">
+                <CardContent className="flex flex-col items-center justify-center space-y-4">
+                  <div className="p-4 bg-primary/10 rounded-full">
+                    <Users className="w-8 h-8 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg">Talent Map Coming Soon</h3>
+                    <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                      We're currently verifying local professionals in {location?.city || "Botswana"}. 
+                      Switch back to 'Working' to browse active jobs.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : isLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {Array.from({ length: 4 }).map((_, i) => (
                   <Skeleton key={i} className="h-48 rounded-2xl" />
