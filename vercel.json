@@ -6,8 +6,8 @@
       "destination": "server/index.ts"
     },
     {
-      "source": "/(.*)",
-      "destination": "/client/$1"
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
     }
   ]
 }
