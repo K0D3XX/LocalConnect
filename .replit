@@ -40,3 +40,9 @@ waitForPort = 5000
 
 [agent]
 integrations = ["javascript_log_in_with_replit:2.0.0"]
+
+[userenv]
+
+[userenv.shared]
+VITE_SUPABASE_URL = "https://nicnfalhmdgbgutkmlpy.supabase.co"
+VITE_SUPABASE_ANON_KEY = "sb_publishable_2xbn2NBg9opICicVxvLeKQ_hVX1W0Ak"

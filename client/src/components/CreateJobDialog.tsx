@@ -41,6 +41,7 @@ const types = ["Full-time", "Part-time", "Contract", "Gig"];
 export function CreateJobDialog() {
   const [open, setOpen] = useState(false);
   const [isLookingUp, setIsLookingUp] = useState(false);
+  const [companyType, setCompanyType] = useState<'individual' | 'business'>('business');
   const { toast } = useToast();
   const { user } = useAuth();
   const createJob = useCreateJob();
@@ -100,7 +101,10 @@ export function CreateJobDialog() {
       return;
     }
 
-    createJob.mutate(data, {
+    createJob.mutate({
+      ...data,
+      company: companyType === 'individual' ? 'Private Employer' : data.company
+    }, {
       onSuccess: () => {
         setOpen(false);
         form.reset();
@@ -151,6 +155,33 @@ export function CreateJobDialog() {
                   </FormItem>
                 )}
               />
+              <FormItem>
+                <FormLabel>Hiring Entity</FormLabel>
+                <Select 
+                  value={companyType} 
+                  onValueChange={(val: any) => {
+                    setCompanyType(val);
+                    if (val === 'individual') {
+                      form.setValue('company', 'Private Employer');
+                    } else {
+                      form.setValue('company', '');
+                    }
+                  }}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="individual">Individual / No Company</SelectItem>
+                    <SelectItem value="business">Business / Company</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormItem>
+            </div>
+
+            {companyType === 'business' && (
               <FormField
                 control={form.control}
                 name="company"
@@ -164,7 +195,7 @@ export function CreateJobDialog() {
                   </FormItem>
                 )}
               />
-            </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
