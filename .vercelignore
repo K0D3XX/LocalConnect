@@ -1,0 +1,6 @@
+server/
+src/
+client/
+*.ts
+tsconfig*.json
+vite.config.ts
