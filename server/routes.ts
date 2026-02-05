@@ -1,10 +1,10 @@
 import type { Express } from "express";
 import type { Server } from "http";
-import { storage } from "./storage";
+import { storage } from "./storage.js";
 import { api } from "@shared/routes";
 import { z } from "zod";
-import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
-import { db } from "./db";
+import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth/index.js";
+import { db } from "./db.js";
 import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
 

@@ -1,4 +1,4 @@
-import { db } from "./db";
+import { db } from "./db.js";
 import { jobs, skills, portfolioItems, workExperience, transactions, users, type CreateJobRequest, type Job, type Skill, type PortfolioItem, type WorkExperience, type Transaction } from "@shared/schema";
 import { eq } from "drizzle-orm";
 

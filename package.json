@@ -5,11 +5,13 @@
   "license": "MIT",
   "scripts": {
     "dev": "NODE_ENV=development tsx server/index.ts",
-    "build": "vite build && tsx script/build.ts",
-    "start": "NODE_ENV=production node dist/index.cjs",
+    "build": "npm run build:server && npm run build:client",
+    "build:server": "tsup server/index.ts --format esm --outDir api --external express --external drizzle-orm --external @neondatabase/serverless --external @babel/core --external lightningcss --external vite --external @vitejs/plugin-react --external passport --external openid-client --external connect-pg-simple --external memoizee",
+    "build:client": "vite build",
+    "start": "node api/index.js",
     "check": "tsc",
     "db:push": "drizzle-kit push",
-    "vercel-build": "vite build && tsx script/build.ts"
+    "vercel-build": "npm run build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -50,6 +52,7 @@
     "cmdk": "^1.1.1",
     "connect-pg-simple": "^10.0.0",
     "date-fns": "^3.6.0",
+    "dotenv": "^17.2.3",
     "drizzle-orm": "^0.39.3",
     "drizzle-zod": "^0.7.0",
     "embla-carousel-react": "^8.6.0",
@@ -93,7 +96,7 @@
     "@types/connect-pg-simple": "^7.0.3",
     "@types/express": "^5.0.0",
     "@types/express-session": "^1.18.2",
-    "@types/node": "20.19.27",
+    "@types/node": "^20.19.27",
     "@types/passport": "^1.0.17",
     "@types/passport-local": "^1.0.38",
     "@types/react": "^18.3.11",
@@ -105,6 +108,7 @@
     "esbuild": "^0.25.0",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.17",
+    "tsup": "^8.5.1",
     "tsx": "^4.20.5",
     "typescript": "5.6.3",
     "vite": "^7.3.0"
