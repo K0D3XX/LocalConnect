@@ -3,7 +3,7 @@ import type { Server } from "http";
 import { storage } from "./storage.js";
 import { api } from "@shared/routes";
 import { z } from "zod";
-import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth/index.js";
+//import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth/index.js";
 import { db } from "./db.js";
 import { users } from "@shared/schema";
 import { eq } from "drizzle-orm";
@@ -13,8 +13,8 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   // Auth Setup
-  await setupAuth(app);
-  registerAuthRoutes(app);
+  //await setupAuth(app);
+  //registerAuthRoutes(app);
 
   app.get(api.jobs.list.path, async (req, res) => {
     const jobs = await storage.getJobs();
@@ -70,15 +70,15 @@ export async function registerRoutes(
   });
 
   app.post("/api/transactions", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    const userId = (req.user as any).claims.sub;
+    // if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = "test-user-123"; // Temporary test user
     const tx = await storage.createTransaction({ ...req.body, userId });
     res.status(201).json(tx);
   });
 
   app.post("/api/profile/skills", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    const userId = (req.user as any).claims.sub;
+    // if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = "test-user-123"; // Temporary test user
     const { name } = req.body;
     const skill = await storage.addSkill(userId, name);
     res.status(201).json(skill);

@@ -258,182 +258,8 @@ var api = {
 
 // server/routes.ts
 import { z as z2 } from "zod";
-
-// server/replit_integrations/auth/replitAuth.ts
-import * as client from "openid-client";
-import { Strategy } from "openid-client/passport";
-import passport from "passport";
-import session from "express-session";
-import memoize from "memoizee";
-import connectPg from "connect-pg-simple";
-
-// server/replit_integrations/auth/storage.ts
 import { eq as eq2 } from "drizzle-orm";
-var AuthStorage = class {
-  async getUser(id) {
-    const [user] = await db.select().from(users).where(eq2(users.id, id));
-    return user;
-  }
-  async upsertUser(userData) {
-    const [user] = await db.insert(users).values(userData).onConflictDoUpdate({
-      target: users.id,
-      set: {
-        ...userData,
-        updatedAt: /* @__PURE__ */ new Date()
-      }
-    }).returning();
-    return user;
-  }
-};
-var authStorage = new AuthStorage();
-
-// server/replit_integrations/auth/replitAuth.ts
-var getOidcConfig = memoize(
-  async () => {
-    return await client.discovery(
-      new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
-      process.env.REPL_ID
-    );
-  },
-  { maxAge: 3600 * 1e3 }
-);
-function getSession() {
-  const sessionTtl = 7 * 24 * 60 * 60 * 1e3;
-  const pgStore = connectPg(session);
-  const sessionStore = new pgStore({
-    conString: process.env.DATABASE_URL,
-    createTableIfMissing: false,
-    ttl: sessionTtl,
-    tableName: "sessions"
-  });
-  return session({
-    secret: process.env.SESSION_SECRET,
-    store: sessionStore,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      secure: true,
-      maxAge: sessionTtl
-    }
-  });
-}
-function updateUserSession(user, tokens) {
-  var _a;
-  user.claims = tokens.claims();
-  user.access_token = tokens.access_token;
-  user.refresh_token = tokens.refresh_token;
-  user.expires_at = (_a = user.claims) == null ? void 0 : _a.exp;
-}
-async function upsertUser(claims) {
-  await authStorage.upsertUser({
-    id: claims["sub"],
-    email: claims["email"],
-    firstName: claims["first_name"],
-    lastName: claims["last_name"],
-    profileImageUrl: claims["profile_image_url"]
-  });
-}
-async function setupAuth(app2) {
-  app2.set("trust proxy", 1);
-  app2.use(getSession());
-  app2.use(passport.initialize());
-  app2.use(passport.session());
-  const config = await getOidcConfig();
-  const verify = async (tokens, verified) => {
-    const user = {};
-    updateUserSession(user, tokens);
-    await upsertUser(tokens.claims());
-    verified(null, user);
-  };
-  const registeredStrategies = /* @__PURE__ */ new Set();
-  const ensureStrategy = (domain) => {
-    const strategyName = `replitauth:${domain}`;
-    if (!registeredStrategies.has(strategyName)) {
-      const strategy = new Strategy(
-        {
-          name: strategyName,
-          config,
-          scope: "openid email profile offline_access",
-          callbackURL: `https://${domain}/api/callback`
-        },
-        verify
-      );
-      passport.use(strategy);
-      registeredStrategies.add(strategyName);
-    }
-  };
-  passport.serializeUser((user, cb) => cb(null, user));
-  passport.deserializeUser((user, cb) => cb(null, user));
-  app2.get("/api/login", (req, res, next) => {
-    ensureStrategy(req.hostname);
-    passport.authenticate(`replitauth:${req.hostname}`, {
-      prompt: "login consent",
-      scope: ["openid", "email", "profile", "offline_access"]
-    })(req, res, next);
-  });
-  app2.get("/api/callback", (req, res, next) => {
-    ensureStrategy(req.hostname);
-    passport.authenticate(`replitauth:${req.hostname}`, {
-      successReturnToOrRedirect: "/",
-      failureRedirect: "/api/login"
-    })(req, res, next);
-  });
-  app2.get("/api/logout", (req, res) => {
-    req.logout(() => {
-      res.redirect(
-        client.buildEndSessionUrl(config, {
-          client_id: process.env.REPL_ID,
-          post_logout_redirect_uri: `${req.protocol}://${req.hostname}`
-        }).href
-      );
-    });
-  });
-}
-var isAuthenticated = async (req, res, next) => {
-  const user = req.user;
-  if (!req.isAuthenticated() || !user.expires_at) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-  const now = Math.floor(Date.now() / 1e3);
-  if (now <= user.expires_at) {
-    return next();
-  }
-  const refreshToken = user.refresh_token;
-  if (!refreshToken) {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
-  }
-  try {
-    const config = await getOidcConfig();
-    const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
-    updateUserSession(user, tokenResponse);
-    return next();
-  } catch (error) {
-    res.status(401).json({ message: "Unauthorized" });
-    return;
-  }
-};
-
-// server/replit_integrations/auth/routes.ts
-function registerAuthRoutes(app2) {
-  app2.get("/api/auth/user", isAuthenticated, async (req, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await authStorage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
-}
-
-// server/routes.ts
-import { eq as eq3 } from "drizzle-orm";
 async function registerRoutes(httpServer2, app2) {
-  await setupAuth(app2);
-  registerAuthRoutes(app2);
   app2.get(api.jobs.list.path, async (req, res) => {
     const jobs3 = await storage.getJobs();
     res.json(jobs3);
@@ -462,7 +288,7 @@ async function registerRoutes(httpServer2, app2) {
   });
   app2.get("/api/profile/:userId", async (req, res) => {
     const userId = req.params.userId;
-    const authUser = await db.select().from(users).where(eq3(users.id, userId)).limit(1);
+    const authUser = await db.select().from(users).where(eq2(users.id, userId)).limit(1);
     if (authUser.length === 0) return res.status(404).json({ message: "User not found" });
     const [profileSkills, portfolio, experience] = await Promise.all([
       storage.getSkills(userId),
@@ -478,14 +304,12 @@ async function registerRoutes(httpServer2, app2) {
     });
   });
   app2.post("/api/transactions", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    const userId = req.user.claims.sub;
+    const userId = "test-user-123";
     const tx = await storage.createTransaction({ ...req.body, userId });
     res.status(201).json(tx);
   });
   app2.post("/api/profile/skills", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    const userId = req.user.claims.sub;
+    const userId = "test-user-123";
     const { name } = req.body;
     const skill = await storage.addSkill(userId, name);
     res.status(201).json(skill);
