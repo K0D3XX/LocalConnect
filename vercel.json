@@ -1,19 +1,20 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/index.js",
-      "use": "@vercel/node"
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
+  "ignoreCommand": "exit 0",
+  "framework": null,
+  "outputDirectory": "dist/public",
+  "functions": {
+    "api/*.js": {
+      "runtime": "nodejs20.x",
+      "maxDuration": 10
     }
-  ],
-  "routes": [
+  },
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/dist/public/$1"
+      "source": "/api/:path*",
+      "destination": "/api/index.js"
     }
   ]
 }

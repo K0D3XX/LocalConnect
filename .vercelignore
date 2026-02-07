@@ -1,6 +1,9 @@
 server/
-src/
 client/
+src/
 *.ts
+!api/**/*.js
 tsconfig*.json
 vite.config.ts
+.replit
+replit.nix
