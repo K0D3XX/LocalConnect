@@ -1,20 +1,9 @@
 {
   "version": 2,
-  "installCommand": "npm install",
-  "buildCommand": "npm run build",
-  "ignoreCommand": "exit 0",
-  "framework": null,
-  "outputDirectory": "dist/public",
-  "functions": {
-    "api/*.js": {
-      "runtime": "nodejs20.x",
-      "maxDuration": 10
-    }
-  },
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "/api/index.js"
+      "source": "/api/jobs",
+      "destination": "/api/jobs.js"
     }
   ]
 }
