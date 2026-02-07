@@ -20,7 +20,13 @@ function Router() {
       <Route path="/profile/:userId" component={Profile} />
       <Route path="/checkout/:jobId" component={Checkout} />
       <Route path="/">
-        {location ? <Dashboard /> : <Onboarding />}
+        {location ? (
+          <ErrorBoundary>
+            <Dashboard />
+          </ErrorBoundary>
+        ) : (
+          <Onboarding />
+        )}
       </Route>
       <Route component={NotFound} />
     </Switch>

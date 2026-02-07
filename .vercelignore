@@ -1,9 +1,9 @@
-server/
-client/
-src/
+cat > .vercelignore << 'EOF'
+node_modules
+.git
+dist
+server
+client/src
 *.ts
-!api/**/*.js
-tsconfig*.json
-vite.config.ts
-.replit
-replit.nix
+tsconfig.json
+EOF

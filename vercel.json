@@ -1,9 +1,5 @@
+cat > vercel.json << 'EOF'
 {
-  "version": 2,
-  "rewrites": [
-    {
-      "source": "/api/jobs",
-      "destination": "/api/jobs.js"
-    }
-  ]
+  "version": 2
 }
+EOF
